@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="theme-color" content="#141713">
+	<title>iPhone Interaktif</title>
+	<style>
+		:root {
+			color-scheme: dark;
+			--glass: #252823d9;
+			--glass-border: #ffffff24;
+			--white: #fff;
+			--green: #25d366;
+			--spotify: #1ed760;
+		}
+
+		* { box-sizing: border-box; }
+
+		body {
+			display: grid;
+			min-width: 320px;
+			min-height: 100vh;
+			min-height: 100dvh;
+			margin: 0;
+			place-items: center;
+			overflow: hidden;
+			background: #141713;
+			color: var(--white);
+			font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+		}
+
+		button, input { font: inherit; }
+		button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+
+		.phone {
+			position: relative;
+			width: min(414px, 100vw, calc(100dvh * 9 / 19.5));
+			height: min(896px, 100dvh, calc(100vw * 19.5 / 9));
+			min-height: 0;
+			overflow: hidden;
+			isolation: isolate;
+			border: 1px solid #ffffff38;
+			border-radius: 44px;
+			background: #30352d;
+			box-shadow: 0 28px 90px #0009;
+		}
+
+		.wallpaper {
+			position: absolute;
+			z-index: -2;
+			inset: 0;
+			background: url("mahae2.webp") center 43% / cover no-repeat;
+			transform: scale(1.02);
+		}
+
+		.wallpaper::after {
+			position: absolute;
+			inset: 0;
+			background: linear-gradient(180deg, #090d0bcc 0%, #10150e4a 31%, #11150f25 52%, #10130fb8 100%);
+			content: "";
+		}
+
+		.screen {
+			position: absolute;
+			inset: 0;
+			display: flex;
+			flex-direction: column;
+			overflow: auto;
+			padding: 18px 20px max(20px, env(safe-area-inset-bottom));
+			scrollbar-width: none;
+			transition: opacity .2s ease, transform .2s ease;
+		}
+
+		.screen::-webkit-scrollbar { display: none; }
+		.screen[hidden] { display: none; }
+
+		.status-bar {
+			display: flex;
+			min-height: 24px;
+			align-items: center;
+			justify-content: space-between;
+			padding: 0 7px;
+			font-size: 13px;
+			font-weight: 700;
+			text-shadow: 0 1px 8px #0009;
+		}
+
+		.status-right { display: flex; align-items: center; gap: 6px; }
+		.status-right svg { width: 17px; height: 15px; fill: currentColor; }
+
+		.battery {
+			position: relative;
+			display: grid;
+			width: 27px;
+			height: 13px;
+			place-items: center;
+			border: 1px solid currentColor;
+			border-radius: 4px;
+			font-size: 8px;
+			line-height: 1;
+		}
+
+		.battery::after {
+			position: absolute;
+			top: 3px;
+			right: -4px;
+			width: 2px;
+			height: 5px;
+			border-radius: 0 2px 2px 0;
+			background: currentColor;
+			content: "";
+		}
+
+		.lock-header {
+			margin-top: clamp(24px, 5.4vh, 56px);
+			text-align: center;
+			text-shadow: 0 2px 16px #0009;
+		}
+
+		.date {
+			margin: 0 0 2px;
+			font-size: 17px;
+			font-weight: 650;
+		}
+
+		.clock {
+			display: block;
+			font-size: clamp(76px, 21vw, 106px);
+			font-weight: 250;
+			line-height: .98;
+			letter-spacing: 0;
+			font-variant-numeric: tabular-nums;
+		}
+
+		.player {
+			display: grid;
+			gap: 14px;
+			width: 100%;
+			margin-top: clamp(20px, 4vh, 34px);
+			padding: 16px;
+			border: 1px solid var(--glass-border);
+			border-radius: 24px;
+			background: #292a27dc;
+			box-shadow: 0 12px 30px #0003;
+			backdrop-filter: blur(22px) saturate(1.2);
+			-webkit-backdrop-filter: blur(22px) saturate(1.2);
+		}
+
+		.track-info { display: grid; grid-template-columns: 72px minmax(0, 1fr) 22px; align-items: center; gap: 13px; }
+
+		.album-art {
+			display: block;
+			width: 72px;
+			height: 72px;
+			border-radius: 12px;
+			object-fit: cover;
+			background: #555;
+			box-shadow: 0 4px 12px #0004;
+		}
+
+		.track-copy { min-width: 0; }
+		.track-title { overflow: hidden; margin: 0 0 5px; font-size: 18px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+		.track-artist { margin: 0; color: #ffffffb8; font-size: 14px; }
+		.spotify-mark { display: grid; place-items: center; }
+		.spotify-mark svg { display: block; width: 21px; height: 21px; }
+
+		.seek {
+			width: 100%;
+			height: 4px;
+			margin: 0;
+			accent-color: #fff;
+			cursor: pointer;
+		}
+
+		.track-time { display: flex; justify-content: space-between; margin-top: -9px; color: #ffffffbd; font-size: 11px; }
+		.player-controls { display: flex; align-items: center; justify-content: center; gap: 32px; }
+
+		.player-controls button {
+			display: grid;
+			width: 37px;
+			height: 37px;
+			place-items: center;
+			border: 0;
+			background: transparent;
+			color: white;
+			font-size: 21px;
+		}
+
+		.player-controls .play-button { width: 48px; height: 48px; border-radius: 50%; background: #fff; color: #1c201b; font-size: 20px; }
+		.audio-picker { display: none; }
+
+		.notifications { display: grid; gap: 8px; margin-top: 15px; }
+
+		.notification {
+			display: grid;
+			grid-template-columns: 24px minmax(0, 1fr) auto;
+			align-items: center;
+			column-gap: 8px;
+			width: 100%;
+			padding: 8px 10px;
+			border: 1px solid #ffffff20;
+			border-radius: 15px;
+			background: #30312ee8;
+			color: #fff;
+			text-align: left;
+			box-shadow: 0 8px 24px #0002;
+			backdrop-filter: blur(20px) saturate(1.2);
+			-webkit-backdrop-filter: blur(20px) saturate(1.2);
+			transition: transform .15s ease, background .15s ease;
+		}
+
+		.notification:active { transform: scale(.99); }
+		.wa-mark { display: grid; width: 24px; height: 24px; place-items: center; border-radius: 7px; background: var(--green); }
+		.wa-mark svg { width: 18px; height: 18px; fill: white; }
+		.notification-app { align-self: center; font-size: 11px; font-weight: 650; }
+		.notification-time { color: #ffffffa8; font-size: 10px; }
+		.notification-name { grid-column: 1 / -1; margin-top: 4px; font-size: 12px; font-weight: 700; }
+		.notification-message { grid-column: 1 / -1; margin: 2px 0 0; color: #ffffffe0; font-size: 11px; line-height: 1.25; }
+
+		.lock-bottom { display: grid; grid-template-columns: 1fr auto 1fr; align-items: end; margin-top: auto; padding-top: 15px; }
+		.quick-action { display: grid; width: 45px; height: 45px; place-items: center; border: 1px solid #ffffff25; border-radius: 50%; background: #171a16b8; color: #fff; font-size: 20px; backdrop-filter: blur(14px); }
+		.quick-action:last-child { justify-self: end; }
+		.unlock-hint { display: grid; justify-items: center; gap: 9px; color: #fff; font-size: 11px; text-shadow: 0 1px 6px #000b; }
+		.home-indicator { width: 128px; height: 5px; border-radius: 5px; background: #fff; }
+
+		.home-screen { padding-top: 66px; }
+		.home-title { margin: 12px 0 26px; font-size: 18px; font-weight: 650; text-shadow: 0 1px 8px #000; }
+		.app-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px 10px; }
+		.home-app { display: grid; justify-items: center; gap: 6px; padding: 0; border: 0; background: transparent; color: white; font-size: 10px; text-shadow: 0 1px 5px #000; }
+		.home-app-icon { display: grid; width: 52px; height: 52px; place-items: center; border-radius: 14px; background: #ffffffdf; color: #30352e; font-size: 22px; box-shadow: 0 4px 12px #0003; }
+		.home-app-icon.whatsapp { background: var(--green); color: #fff; }
+		.home-app-icon.spotify { background: #1ed760; color: #111; }
+		.home-app-icon.notes { background: #ffe58a; color: #514728; }
+		.home-app-icon.photos { background: #fff; }
+		.home-app-icon.camera { background: linear-gradient(145deg, #f3f5f8, #aeb9c8); }
+		.home-app-icon svg { display: block; width: 29px; height: 29px; }
+		.home-return { align-self: center; margin-top: auto; padding: 10px 16px; border: 1px solid #ffffff35; border-radius: 22px; background: #171a16aa; color: white; font-size: 12px; }
+		.photos-screen { background: #f4f5f7; color: #202329; text-shadow: none; }
+		.photos-titlebar { display: grid; grid-template-columns: 80px 1fr auto; align-items: center; gap: 8px; min-height: 44px; }
+		.photos-titlebar h1 { margin: 0; font-size: 18px; text-align: center; }
+		.photos-count { margin: 0; color: #687078; font-size: 11px; text-align: center; }
+		.photos-add { padding: 8px 0; border: 0; background: transparent; color: #2676d2; font-size: 13px; font-weight: 650; }
+		.photos-picker { display: none; }
+		.photos-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-content: start; gap: 3px; overflow-y: auto; margin: 10px -20px 0; padding-bottom: 10px; }
+		.photo-tile { aspect-ratio: 1; min-width: 0; padding: 0; overflow: hidden; border: 0; background: #e3e5e8; }
+		.photo-tile img { display: block; width: 100%; height: 100%; object-fit: cover; }
+		.photo-viewer { position: absolute; z-index: 6; inset: 0; display: flex; flex-direction: column; padding: 16px 16px max(16px, env(safe-area-inset-bottom)); background: #090a0c; color: #fff; }
+		.photo-viewer[hidden] { display: none; }
+		.photo-viewer-header { display: grid; grid-template-columns: 72px 1fr 72px; align-items: center; min-height: 42px; }
+		.photo-viewer-header h2 { overflow: hidden; margin: 0; font-size: 13px; font-weight: 550; text-align: center; text-overflow: ellipsis; white-space: nowrap; }
+		.photo-viewer-close { justify-self: start; padding: 8px 0; border: 0; background: transparent; color: #fff; font-size: 14px; }
+		.photo-viewer-image { display: block; width: 100%; min-height: 0; flex: 1; margin: 12px 0; object-fit: contain; }
+		.photo-viewer-controls { display: flex; justify-content: space-between; }
+		.photo-viewer-controls button { padding: 9px 12px; border: 1px solid #ffffff40; border-radius: 20px; background: #ffffff14; color: #fff; font-size: 12px; }
+		.spotify-screen { background: #121713; color: #fff; }
+		.app-back { justify-self: start; padding: 8px 0; border: 0; background: transparent; color: #b8c4b9; font-size: 14px; }
+		.spotify-screen > .app-back { align-self: flex-start; text-align: left; }
+		.spotify-title { margin: 10px 0 24px; text-align: center; font-size: 17px; font-weight: 700; }
+		.spotify-art { width: min(100%, 330px); aspect-ratio: 1; align-self: center; border-radius: 8px; object-fit: cover; box-shadow: 0 18px 44px #0007; }
+		.spotify-track { margin: 23px 0 0; font-size: 22px; font-weight: 750; }
+		.spotify-artist { margin: 6px 0 20px; color: #b7c1b8; font-size: 14px; }
+		.spotify-seek { width: 100%; accent-color: #fff; }
+		.spotify-times { display: flex; justify-content: space-between; margin-top: 3px; color: #aeb7af; font-size: 11px; }
+		.spotify-controls { display: flex; align-items: center; justify-content: center; gap: 35px; margin: 22px 0; }
+		.spotify-controls button { display: grid; width: 44px; height: 44px; place-items: center; border: 0; background: transparent; color: #fff; font-size: 20px; }
+		.spotify-controls .spotify-play { width: 54px; height: 54px; border-radius: 50%; background: #fff; color: #111; font-size: 21px; }
+		.spotify-file { align-self: center; padding: 10px 16px; border: 1px solid #ffffff3b; border-radius: 20px; background: transparent; color: white; font-size: 12px; }
+		.notes-screen { background: #f7f4e9; color: #24251f; }
+		.notes-titlebar { display: grid; grid-template-columns: 72px 1fr auto; align-items: center; gap: 8px; min-height: 42px; }
+		.notes-titlebar h1 { margin: 0; text-align: center; font-size: 18px; }
+		.notes-save { justify-self: end; padding: 8px 0; border: 0; background: transparent; color: #386b4a; font-size: 13px; font-weight: 700; }
+		.notes-list { display: grid; align-content: start; gap: 8px; overflow-y: auto; margin: 12px -8px 0; padding: 0 8px 12px; }
+		.note-row { display: grid; gap: 5px; width: 100%; padding: 12px; border: 1px solid #00000010; border-radius: 8px; background: #fff; color: #24251f; text-align: left; }
+		.note-row-title { overflow: hidden; font-size: 14px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+		.note-row-preview { display: -webkit-box; overflow: hidden; color: #72736b; font-size: 12px; line-height: 1.4; -webkit-box-orient: vertical; line-clamp: 2; -webkit-line-clamp: 2; }
+		.note-empty { margin: 28px 0; color: #72736b; font-size: 13px; text-align: center; }
+		.note-editor-screen { background: #f7f4e9; color: #24251f; }
+		.note-editor-back { justify-self: start; padding: 8px 0; border: 0; background: transparent; color: #386b4a; font-size: 13px; }
+		.note-editor-title { overflow: hidden; margin: 0; font-size: 16px; text-align: center; text-overflow: ellipsis; white-space: nowrap; }
+		.note-title-input { margin-top: 24px; padding: 8px 0; border: 0; border-bottom: 1px solid #d5d1c4; outline: 0; background: transparent; color: inherit; font-size: 20px; font-weight: 700; }
+		.note-body { width: 100%; flex: 1; min-height: 180px; margin-top: 12px; padding: 8px 0; resize: none; border: 0; outline: 0; background: transparent; color: inherit; font: inherit; font-size: 15px; line-height: 1.7; }
+		.note-footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 42px; color: #72736b; font-size: 11px; }
+		.note-delete { padding: 7px 10px; border: 0; border-radius: 7px; background: #e9e3d5; color: #6b453f; font-size: 11px; }
+
+		.inbox-screen, .chat-screen { background: #f6f7f8; color: #202329; text-shadow: none; }
+		.inbox-screen .screen-title { margin: 8px 0 15px; text-align: center; font-size: 19px; }
+		.back-button { position: absolute; top: 22px; left: 21px; border: 0; background: none; color: #168c63; font-size: 14px; }
+		.chat-search { width: 100%; margin: 8px 0 12px; padding: 10px 13px; border: 0; border-radius: 9px; outline: 0; background: #e9ecef; color: #202329; font-size: 13px; }
+		.chat-search:focus { box-shadow: 0 0 0 2px #168c6338; }
+		.chat-list { display: grid; margin: 0 -20px; }
+		.chat-row { display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 13px 18px; border: 0; border-bottom: 1px solid #e7e8e9; background: #fff; color: #202329; text-align: left; }
+		.chat-row[hidden] { display: none; }
+		.chat-empty { margin: 22px 0; color: #747a80; font-size: 13px; text-align: center; }
+		.chat-empty[hidden] { display: none; }
+		.chat-row-avatar { display: grid; width: 48px; height: 48px; place-items: center; border-radius: 50%; background: var(--green); color: #fff; font-size: 19px; }
+		.chat-row-avatar img { width: 100%; height: 100%; border-radius: inherit; object-fit: cover; }
+		.chat-row-copy { display: grid; min-width: 0; gap: 5px; }
+		.chat-row-name { font-size: 14px; font-weight: 700; }
+		.chat-row-preview { overflow: hidden; color: #747a80; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+		.chat-row-time { align-self: start; color: #747a80; font-size: 10px; }
+
+		.chat-screen { background: #efeae2; }
+		.chat-header { display: grid; grid-template-columns: max-content minmax(0, 1fr) auto; align-items: center; gap: 8px; min-height: 47px; border-bottom: 1px solid #00000010; }
+		.chat-contact-heading { display: flex; min-width: 0; align-items: center; justify-content: center; gap: 6px; }
+		.chat-contact-heading img { width: 27px; height: 27px; flex: none; border-radius: 50%; object-fit: cover; }
+		.chat-contact-heading img[hidden] { display: none; }
+		.chat-header h1 { overflow: hidden; min-width: 0; margin: 0; font-size: 15px; text-align: center; text-overflow: ellipsis; white-space: nowrap; }
+		.chat-back { justify-self: start; padding: 8px 0; border: 0; background: transparent; color: #168c63; font-size: 13px; }
+		.chat-actions { display: flex; align-items: center; gap: 3px; }
+		.chat-actions button { display: grid; width: 34px; height: 36px; place-items: center; padding: 0; border: 0; border-radius: 50%; background: transparent; color: #168c63; }
+		.chat-actions button:active { background: #168c6318; }
+		.chat-actions svg { width: 19px; height: 19px; fill: currentColor; }
+		.chat-thread { display: flex; flex: 1; flex-direction: column; align-items: flex-start; gap: 10px; overflow-y: auto; padding: 20px 2px; scrollbar-width: none; }
+		.chat-thread::-webkit-scrollbar { display: none; }
+		.chat-day { align-self: center; padding: 5px 9px; border-radius: 8px; background: #fff9; color: #70746f; font-size: 10px; }
+		.chat-bubble { max-width: 84%; padding: 9px 11px; border-radius: 4px 13px 13px 13px; background: #fff; box-shadow: 0 1px 1px #0001; font-size: 13px; line-height: 1.45; overflow-wrap: anywhere; }
+		.chat-bubble.sent { align-self: flex-end; border-radius: 13px 4px 13px 13px; background: #d9fdd3; }
+		.chat-delivery { display: inline-block; margin-left: 8px; color: #4b8f75; font-size: 10px; white-space: nowrap; }
+		.chat-form { display: flex; gap: 8px; padding-top: 10px; }
+		.chat-form input { min-width: 0; flex: 1; padding: 11px 14px; border: 1px solid #e0e1df; border-radius: 22px; background: white; color: #202329; font-size: 13px; }
+		.chat-form button { width: 42px; height: 42px; flex: none; border: 0; border-radius: 50%; background: #168c63; color: white; font-size: 18px; }
+		.passcode-overlay { position: absolute; z-index: 5; inset: 0; display: none; flex-direction: column; align-items: center; padding: 16vh 28px 32px; background: #161914eF; color: white; text-align: center; backdrop-filter: blur(24px); }
+		.phone.passcode-open .passcode-overlay { display: flex; }
+		.passcode-title { margin: 0 0 10px; font-size: 19px; font-weight: 600; }
+		.passcode-hint { min-height: 18px; margin: 0; color: #ffffffb9; font-size: 12px; }
+		.passcode-dots { display: flex; gap: 17px; margin: 27px 0 30px; }
+		.passcode-dot { width: 12px; height: 12px; border: 1px solid #fff; border-radius: 50%; }
+		.passcode-dot.filled { background: #fff; }
+		.keypad { display: grid; width: min(260px, 100%); grid-template-columns: repeat(3, 1fr); gap: 13px 18px; }
+		.keypad button { width: 66px; height: 66px; justify-self: center; border: 1px solid #ffffff26; border-radius: 50%; background: #ffffff18; color: #fff; font-size: 25px; font-weight: 450; }
+		.keypad button:active { background: #ffffff3c; }
+		.keypad .key-empty { visibility: hidden; }
+		.keypad .key-action { border: 0; background: transparent; font-size: 12px; }
+		.passcode-cancel { margin-top: auto; padding: 10px 18px; border: 0; background: transparent; color: white; font-size: 14px; }
+
+		.device.unlocked #lockScreen, .device.chat-open #lockScreen, .device.inbox-open #lockScreen { display: none; }
+		.device.unlocked #homeScreen { display: flex; }
+		.device.inbox-open #homeScreen, .device.chat-open #homeScreen, .device.chat-open #inboxScreen, .device.inbox-open #lockScreen { display: none; }
+		.device.inbox-open #inboxScreen, .device.chat-open #chatScreen { display: flex; }
+
+		@media (max-height: 740px) {
+			.screen { padding-top: 12px; padding-bottom: max(13px, env(safe-area-inset-bottom)); }
+			.lock-header { margin-top: 19px; }
+			.clock { font-size: clamp(68px, 18vh, 88px); }
+			.player { gap: 10px; margin-top: 17px; padding: 12px; border-radius: 20px; }
+			.track-info { grid-template-columns: 58px minmax(0, 1fr) 20px; gap: 10px; }
+			.album-art { width: 58px; height: 58px; }
+			.track-title { font-size: 16px; }
+			.player-controls { gap: 23px; }
+			.notifications { gap: 7px; margin-top: 10px; }
+			.notification { padding: 8px 10px; }
+			.notification-name { margin-top: 4px; }
+			.notification-message { margin-top: 2px; }
+			.quick-action { width: 40px; height: 40px; }
+			.spotify-screen { padding-top: 12px; padding-bottom: 12px; }
+			.spotify-title { margin: 2px 0 12px; }
+			.spotify-art { width: min(230px, 38vh, 100%); }
+			.spotify-track { margin-top: 14px; font-size: 20px; }
+			.spotify-artist { margin: 4px 0 12px; }
+			.spotify-controls { gap: 24px; margin: 12px 0; }
+			.spotify-controls button { width: 38px; height: 38px; }
+			.spotify-controls .spotify-play { width: 46px; height: 46px; }
+			.spotify-file { padding: 8px 14px; }
+		}
+
+		@media (max-width: 500px) {
+			.phone { width: min(100vw, calc(100dvh * 9 / 19.5)); height: min(100dvh, calc(100vw * 19.5 / 9)); min-height: 0; border: 0; border-radius: 0; }
+			.screen { padding-right: 20px; padding-left: 20px; }
+		}
+
+		@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; } }
+	</style>
+</head>
+<body>
+	<main class="phone" id="phone" aria-label="Simulasi iPhone">
+		<div class="wallpaper" aria-hidden="true"></div>
+
+		<section class="screen lock-screen" id="lockScreen" aria-label="Layar terkunci">
+			<div class="status-bar">
+				<span id="statusTime">23.30</span>
+				<span class="status-right"><span>5G</span><svg viewBox="0 0 20 16" aria-label="Sinyal seluler"><path d="M1 14h2V9H1zm4 0h2V6H5zm4 0h2V3H9zm4 0h2V1h-2z"/></svg><span class="battery">85</span></span>
+			</div>
+
+			<header class="lock-header">
+				<p class="date" id="date">Rabu, 21 Oktober</p>
+				<time class="clock" id="clock">23.30</time>
+			</header>
+
+			<section class="player" aria-label="Pemutar musik">
+				<div class="track-info">
+					<img class="album-art" src="pressin.jpeg" alt="Sampul album MARK">
+					<div class="track-copy"><p class="track-title" id="trackTitle">+82 pressin</p><p class="track-artist" id="trackArtist">MARK ft.HAECHAN</p></div>
+					<span class="spotify-mark" role="img" aria-label="Spotify"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#1ed760"/><path d="M6.2 9c3.9-1.2 8.6-.7 12 1.3M7 12.2c3.3-1 7.2-.5 10 1.1M7.8 15.2c2.6-.7 5.5-.3 7.8.9" fill="none" stroke="#111" stroke-linecap="round" stroke-width="1.7"/></svg></span>
+				</div>
+				<input class="seek" id="seek" type="range" min="0" max="225" value="0" aria-label="Posisi lagu">
+				<div class="track-time"><span id="elapsed">0:00</span><span id="remaining">−3:45</span></div>
+				<div class="player-controls">
+					<button type="button" id="backTen" aria-label="Mundur 10 detik">◀◀</button>
+					<button type="button" class="play-button" id="playButton" aria-label="Putar lagu">▶</button>
+					<button type="button" id="forwardTen" aria-label="Maju 10 detik">▶▶</button>
+				</div>
+				<input class="audio-picker" id="audioPicker" type="file" accept="audio/*">
+				<audio id="audio" src="spotify-track.mp3" preload="metadata"></audio>
+			</section>
+
+			<section class="notifications" aria-label="Notifikasi WhatsApp">
+				<button class="notification" type="button" data-sender="Mark Lee (Jangan Dibalas)" data-message="I miss you">
+					<span class="wa-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 0-8.7 14.9L2 22l5.3-1.3A10 10 0 1 0 12 2zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-3.1.8.8-3-.2-.4A8 8 0 1 1 12 20zm4.4-5.9c-.2-.1-1.4-.7-1.7-.8-.2-.1-.4-.1-.6.2s-.6.8-.8 1c-.1.2-.3.2-.5.1a6.5 6.5 0 0 1-1.9-1.2 7.1 7.1 0 0 1-1.3-1.6c-.1-.2 0-.3.1-.5l.4-.5.3-.4c.1-.2 0-.3 0-.5l-.7-1.7c-.2-.4-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.2.2-.9.9-.9 2.1s.9 2.4 1 2.6c.1.2 1.8 2.8 4.3 3.8.6.3 1.1.4 1.5.5.6.2 1.2.1 1.6.1.5-.1 1.4-.6 1.6-1.2.2-.6.2-1.1.1-1.2-.1-.2-.3-.2-.5-.3z"/></svg></span>
+					<span class="notification-app">WhatsApp</span><span class="notification-time">sekarang</span>
+					<span class="notification-name">Mark Lee (Jangan Dibalas)</span>
+					<span class="notification-message">I miss you</span>
+				</button>
+				<button class="notification" type="button" data-sender="Jeno" data-message="minum yuk">
+					<span class="wa-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 0-8.7 14.9L2 22l5.3-1.3A10 10 0 1 0 12 2zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-3.1.8.8-3-.2-.4A8 8 0 1 1 12 20zm4.4-5.9c-.2-.1-1.4-.7-1.7-.8-.2-.1-.4-.1-.6.2s-.6.8-.8 1c-.1.2-.3.2-.5.1a6.5 6.5 0 0 1-1.9-1.2 7.1 7.1 0 0 1-1.3-1.6c-.1-.2 0-.3.1-.5l.4-.5.3-.4c.1-.2 0-.3 0-.5l-.7-1.7c-.2-.4-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.2.2-.9.9-.9 2.1s.9 2.4 1 2.6c.1.2 1.8 2.8 4.3 3.8.6.3 1.1.4 1.5.5.6.2 1.2.1 1.6.1.5-.1 1.4-.6 1.6-1.2.2-.6.2-1.1.1-1.2-.1-.2-.3-.2-.5-.3z"/></svg></span>
+					<span class="notification-app">WhatsApp</span><span class="notification-time">sekarang</span>
+					<span class="notification-name">Jeno</span>
+					<span class="notification-message">minum yuk</span>
+				</button>
+                	<button class="notification" type="button" data-sender="Cey" data-message="ajak gua plis?">
+					<span class="wa-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 0-8.7 14.9L2 22l5.3-1.3A10 10 0 1 0 12 2zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-3.1.8.8-3-.2-.4A8 8 0 1 1 12 20zm4.4-5.9c-.2-.1-1.4-.7-1.7-.8-.2-.1-.4-.1-.6.2s-.6.8-.8 1c-.1.2-.3.2-.5.1a6.5 6.5 0 0 1-1.9-1.2 7.1 7.1 0 0 1-1.3-1.6c-.1-.2 0-.3.1-.5l.4-.5.3-.4c.1-.2 0-.3 0-.5l-.7-1.7c-.2-.4-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.2.2-.9.9-.9 2.1s.9 2.4 1 2.6c.1.2 1.8 2.8 4.3 3.8.6.3 1.1.4 1.5.5.6.2 1.2.1 1.6.1.5-.1 1.4-.6 1.6-1.2.2-.6.2-1.1.1-1.2-.1-.2-.3-.2-.5-.3z"/></svg></span>
+					<span class="notification-app">WhatsApp</span><span class="notification-time">sekarang</span>
+					<span class="notification-name">Cey</span>
+					<span class="notification-message">ajak gua plis?</span>
+				</button>
+			</section>
+
+			<div class="lock-bottom">
+				<button class="quick-action" type="button" aria-label="Lampu senter">⌁</button>
+				<div class="unlock-hint"><span>⌃ &nbsp; Geser ke atas untuk membuka</span><span class="home-indicator"></span></div>
+				<button class="quick-action" type="button" aria-label="Kamera">◎</button>
+			</div>
+		</section>
+
+		<section class="screen home-screen" id="homeScreen" aria-label="Layar utama" hidden>
+			<div class="status-bar"><span id="homeTime">23.30</span><span>5G &nbsp; ▰</span></div>
+			<h1 class="home-title">Layar utama</h1>
+			<div class="app-grid">
+				<button class="home-app" id="openInbox" type="button"><span class="home-app-icon whatsapp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.7 14.9L2 22l5.3-1.3A10 10 0 1 0 12 2zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-3.1.8.8-3-.2-.4A8 8 0 1 1 12 20zm4.4-5.9c-.2-.1-1.4-.7-1.7-.8-.2-.1-.4-.1-.6.2s-.6.8-.8 1c-.1.2-.3.2-.5.1a6.5 6.5 0 0 1-1.9-1.2 7.1 7.1 0 0 1-1.3-1.6c-.1-.2 0-.3.1-.5l.4-.5.3-.4c.1-.2 0-.3 0-.5l-.7-1.7c-.2-.4-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.2.2-.9.9-.9 2.1s.9 2.4 1 2.6c.1.2 1.8 2.8 4.3 3.8.6.3 1.1.4 1.5.5.6.2 1.2.1 1.6.1.5-.1 1.4-.6 1.6-1.2.2-.6.2-1.1.1-1.2-.1-.2-.3-.2-.5-.3z"/></svg></span><span>WhatsApp</span></button>
+				<button class="home-app" id="openPhotos" type="button"><span class="home-app-icon photos"><svg viewBox="0 0 48 48" aria-hidden="true"><ellipse cx="24" cy="11.5" rx="4.2" ry="8" fill="#ff3b30"/><ellipse cx="24" cy="11.5" rx="4.2" ry="8" fill="#ff9500" transform="rotate(45 24 24)"/><ellipse cx="24" cy="11.5" rx="4.2" ry="8" fill="#ffd60a" transform="rotate(90 24 24)"/><ellipse cx="24" cy="11.5" rx="4.2" ry="8" fill="#34c759" transform="rotate(135 24 24)"/><ellipse cx="24" cy="11.5" rx="4.2" ry="8" fill="#00c7be" transform="rotate(180 24 24)"/><ellipse cx="24" cy="11.5" rx="4.2" ry="8" fill="#32ade6" transform="rotate(225 24 24)"/><ellipse cx="24" cy="11.5" rx="4.2" ry="8" fill="#007aff" transform="rotate(270 24 24)"/><ellipse cx="24" cy="11.5" rx="4.2" ry="8" fill="#af52de" transform="rotate(315 24 24)"/><circle cx="24" cy="24" r="3.4" fill="#fff"/></svg></span><span>Foto</span></button>
+				<button class="home-app" id="openSpotify" type="button"><span class="home-app-icon spotify"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#1ed760"/><path d="M6.2 9c3.9-1.2 8.6-.7 12 1.3M7 12.2c3.3-1 7.2-.5 10 1.1M7.8 15.2c2.6-.7 5.5-.3 7.8.9" fill="none" stroke="#111" stroke-linecap="round" stroke-width="1.7"/></svg></span><span>Spotify</span></button>
+				<button class="home-app" id="openNotes" type="button"><span class="home-app-icon notes">▤</span><span>Catatan</span></button>
+				<button class="home-app" type="button"><span class="home-app-icon camera"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M14 11h7l2.3-3h8.4l2.3 3h4.5a4.5 4.5 0 0 1 4.5 4.5v20a4.5 4.5 0 0 1-4.5 4.5h-29A4.5 4.5 0 0 1 5 35.5v-20A4.5 4.5 0 0 1 9.5 11H14Z" fill="#3e4a59"/><circle cx="24" cy="25" r="9.5" fill="#dce5ed"/><circle cx="24" cy="25" r="6.8" fill="#60b7f3"/><circle cx="24" cy="25" r="4.2" fill="#263d55"/><circle cx="36" cy="16" r="1.8" fill="#c9d3de"/></svg></span><span>Kamera</span></button>
+			</div>
+			<button class="home-return" id="lockAgain" type="button">Kembali ke layar kunci</button>
+		</section>
+
+		<section class="screen photos-screen" id="photosScreen" aria-label="Foto" hidden>
+			<div class="photos-titlebar">
+				<button class="app-back" id="photosBack" type="button">‹ Kembali</button>
+				<h1>Foto</h1>
+				<button class="photos-add" id="addPhotos" type="button">Tambah</button>
+			</div>
+			<p class="photos-count" id="photosCount">3 foto</p>
+			<input class="photos-picker" id="photosPicker" type="file" accept="image/*" multiple>
+			<div class="photos-grid" id="photosGrid" aria-label="Galeri foto"></div>
+			<div class="photo-viewer" id="photoViewer" aria-label="Tampilan foto" aria-hidden="true" hidden>
+				<div class="photo-viewer-header">
+					<button class="photo-viewer-close" id="closePhotoViewer" type="button">‹ Galeri</button>
+					<h2 id="photoViewerTitle"></h2>
+					<span></span>
+				</div>
+				<img class="photo-viewer-image" id="photoViewerImage" alt="Foto yang dipilih">
+				<div class="photo-viewer-controls">
+					<button id="previousPhoto" type="button">Foto sebelumnya</button>
+					<button id="nextPhoto" type="button">Foto berikutnya</button>
+				</div>
+			</div>
+		</section>
+
+		<section class="screen spotify-screen" id="spotifyScreen" aria-label="Spotify" hidden>
+			<button class="app-back" id="spotifyBack" type="button">‹ Kembali</button>
+			<h1 class="spotify-title">Sedang diputar</h1>
+			<img class="spotify-art" src="pressin.jpeg" alt="Sampul album">
+			<h2 class="spotify-track" id="spotifyTrackTitle">+82 pressin</h2>
+			<p class="spotify-artist" id="spotifyTrackArtist">MARK ft.HAECHAN</p>
+			<input class="spotify-seek" id="spotifySeek" type="range" min="0" max="225" value="0" aria-label="Posisi lagu">
+			<div class="spotify-times"><span id="spotifyElapsed">0:00</span><span id="spotifyRemaining">−3:45</span></div>
+			<div class="spotify-controls">
+				<button type="button" id="spotifyBackTen" aria-label="Mundur 10 detik">◀◀</button>
+				<button class="spotify-play" type="button" id="spotifyPlay" aria-label="Putar lagu">▶</button>
+				<button type="button" id="spotifyForwardTen" aria-label="Maju 10 detik">▶▶</button>
+			</div>
+			<button class="spotify-file" type="button" id="spotifyChooseFile">Pilih file musik</button>
+		</section>
+
+		<section class="screen notes-screen" id="notesScreen" aria-label="Catatan" hidden>
+			<div class="notes-titlebar">
+				<button class="app-back" id="notesBack" type="button">‹ Kembali</button>
+				<h1>Catatan</h1>
+				<button class="notes-save" id="newNote" type="button">＋ Baru</button>
+			</div>
+			<div class="notes-list" id="notesList" aria-label="Daftar catatan"></div>
+		</section>
+
+		<section class="screen note-editor-screen" id="noteEditorScreen" aria-label="Editor catatan" hidden>
+			<div class="notes-titlebar">
+				<button class="note-editor-back" id="noteEditorBack" type="button">‹ Catatan</button>
+				<h1 class="note-editor-title" id="noteEditorHeading">Catatan baru</h1>
+				<button class="notes-save" id="saveNote" type="button">Simpan</button>
+			</div>
+			<input class="note-title-input" id="noteTitle" type="text" placeholder="Judul catatan" aria-label="Judul catatan">
+			<textarea class="note-body" id="noteBody" placeholder="Mulai menulis..." aria-label="Isi catatan"></textarea>
+			<div class="note-footer">
+				<span id="noteStatus" aria-live="polite">Catatan baru</span>
+				<button class="note-delete" id="deleteNote" type="button">Hapus catatan</button>
+			</div>
+		</section>
+
+		<section class="screen inbox-screen" id="inboxScreen" aria-label="Daftar chat WhatsApp" hidden>
+			<button class="back-button" id="inboxBack" type="button">‹ Kembali</button>
+			<h1 class="screen-title">WhatsApp</h1>
+			<input class="chat-search" id="chatSearch" type="search" placeholder="Cari chat" aria-label="Cari chat">
+			<div class="chat-list">
+				<button class="chat-row" type="button" data-sender="Mark Lee (Jangan Dibalas)" data-message="I miss you">
+					<span class="chat-row-avatar"><img src="mahae.jpg" alt=""></span><span class="chat-row-copy"><span class="chat-row-name">Mark Lee (Jangan Dibalas)</span><span class="chat-row-preview">I miss you</span></span><span class="chat-row-time">sekarang</span>
+				</button>
+				<button class="chat-row" type="button" data-sender="Jeno" data-message="minum yuk">
+					<span class="chat-row-avatar">J</span><span class="chat-row-copy"><span class="chat-row-name">Jeno</span><span class="chat-row-preview">minum yuk</span></span><span class="chat-row-time">sekarang</span>
+				</button>
+				<button class="chat-row" type="button" data-sender="Cey" data-message="Ajak gua plis?">
+					<span class="chat-row-avatar">C</span><span class="chat-row-copy"><span class="chat-row-name">Cey</span><span class="chat-row-preview">Ajak gua plis?</span></span><span class="chat-row-time">sekarang</span>
+				</button>
+			</div>
+			<p class="chat-empty" id="chatSearchEmpty" hidden>Tidak ada chat ditemukan</p>
+		</section>
+
+		<section class="screen chat-screen" id="chatScreen" aria-label="Percakapan WhatsApp" hidden>
+			<header class="chat-header">
+				<button class="chat-back" id="chatBack" type="button">‹ Kembali</button>
+				<div class="chat-contact-heading">
+					<img id="chatProfileImage" src="mahae.jpg" alt="Foto profil Mark Lee" hidden>
+					<h1 id="contactName">Kontak</h1>
+				</div>
+				<div class="chat-actions">
+					<button type="button" aria-label="Panggilan suara" title="Panggilan suara"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.02-.24c1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1C10.61 21 3 13.39 3 4c0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.24.2 2.45.57 3.57a1 1 0 0 1-.25 1.02l-2.2 2.2Z"/></svg></button>
+					<button type="button" aria-label="Panggilan video" title="Panggilan video"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 10.5V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3.5l5 4v-11l-5 4Z"/></svg></button>
+				</div>
+			</header>
+			<div class="chat-thread" id="chatThread" aria-live="polite"></div>
+			<form class="chat-form" id="chatForm"><input id="chatInput" type="text" placeholder="Ketik pesan" autocomplete="off" aria-label="Ketik pesan"><button type="submit" aria-label="Kirim pesan">➤</button></form>
+		</section>
+
+		<section class="passcode-overlay" id="passcodeOverlay" aria-label="Masukkan kode sandi" aria-hidden="true">
+			<h1 class="passcode-title">Masukkan Kode Sandi</h1>
+			<p class="passcode-hint" id="passcodeHint" aria-live="polite">Masukkan kode 4 digit</p>
+			<div class="passcode-dots" id="passcodeDots" aria-label="0 dari 4 digit dimasukkan">
+				<span class="passcode-dot"></span><span class="passcode-dot"></span><span class="passcode-dot"></span><span class="passcode-dot"></span>
+			</div>
+			<div class="keypad" aria-label="Keypad kode sandi">
+				<button type="button" data-key="1">1</button><button type="button" data-key="2">2</button><button type="button" data-key="3">3</button>
+				<button type="button" data-key="4">4</button><button type="button" data-key="5">5</button><button type="button" data-key="6">6</button>
+				<button type="button" data-key="7">7</button><button type="button" data-key="8">8</button><button type="button" data-key="9">9</button>
+				<button class="key-action" type="button" data-key="delete">Hapus</button><button type="button" data-key="0">0</button><button class="key-action" type="button" data-key="clear">Kosongkan</button>
+			</div>
+			<button class="passcode-cancel" id="passcodeCancel" type="button">Batal</button>
+		</section>
+	</main>
+
+	<script>
+		const phone = document.getElementById("phone");
+		const clock = document.getElementById("clock");
+		const statusTime = document.getElementById("statusTime");
+		const homeTime = document.getElementById("homeTime");
+		const date = document.getElementById("date");
+		const audio = document.getElementById("audio");
+		const audioPicker = document.getElementById("audioPicker");
+		const playButton = document.getElementById("playButton");
+		const seek = document.getElementById("seek");
+		const spotifySeek = document.getElementById("spotifySeek");
+		const spotifyPlay = document.getElementById("spotifyPlay");
+		const photosGrid = document.getElementById("photosGrid");
+		const photosPicker = document.getElementById("photosPicker");
+		const photosCount = document.getElementById("photosCount");
+		const photoViewer = document.getElementById("photoViewer");
+		const photoViewerImage = document.getElementById("photoViewerImage");
+		const photoViewerTitle = document.getElementById("photoViewerTitle");
+		const contactName = document.getElementById("contactName");
+		const chatProfileImage = document.getElementById("chatProfileImage");
+		const chatThread = document.getElementById("chatThread");
+		const chatSearch = document.getElementById("chatSearch");
+		const chatSearchEmpty = document.getElementById("chatSearchEmpty");
+		const chatInput = document.getElementById("chatInput");
+		const chatForm = document.getElementById("chatForm");
+		const chatMessageStorageKey = "whatsapp-chat-messages";
+		const sentMessagesByContact = JSON.parse(localStorage.getItem(chatMessageStorageKey) || "{}");
+		const passcodeDots = document.getElementById("passcodeDots");
+		const passcodeHint = document.getElementById("passcodeHint");
+		const passcodeOverlay = document.getElementById("passcodeOverlay");
+		let touchStartY = null;
+		let chatOrigin = "lock";
+		let passcode = "";
+		let pendingChat = null;
+		let photoItems = [
+			{ source: "m1.jpeg", name: "m1.jpeg" },
+			{ source: "m2.jpeg", name: "m2.jpeg" },
+			{ source: "m3 (2).jpeg", name: "m3.jpeg" },
+			{ source: "m11.jpeg", name: "m11.jpeg" }
+		];
+		let activePhotoIndex = 0;
+
+		function updateTime() {
+			const now = new Date();
+			const time = new Intl.DateTimeFormat("id-ID", { hour: "2-digit", minute: "2-digit", hour12: false }).format(now).replace(":", ".");
+			clock.textContent = time;
+			statusTime.textContent = time;
+			homeTime.textContent = time;
+			date.textContent = new Intl.DateTimeFormat("id-ID", { weekday: "long", day: "numeric", month: "long" }).format(now);
+		}
+
+		function formatTime(seconds) {
+			if (!Number.isFinite(seconds)) return "0:00";
+			const minutes = Math.floor(seconds / 60);
+			const remainder = Math.floor(seconds % 60).toString().padStart(2, "0");
+			return `${minutes}:${remainder}`;
+		}
+
+		function updatePlayer() {
+			if (!audio.duration) return;
+			[seek, spotifySeek].forEach((slider) => {
+				slider.max = String(audio.duration);
+				slider.value = String(audio.currentTime);
+			});
+			["elapsed", "spotifyElapsed"].forEach((id) => { document.getElementById(id).textContent = formatTime(audio.currentTime); });
+			["remaining", "spotifyRemaining"].forEach((id) => { document.getElementById(id).textContent = `−${formatTime(audio.duration - audio.currentTime)}`; });
+		}
+
+		function updatePlayButtons(playing) {
+			const icon = playing ? "❚❚" : "▶";
+			playButton.textContent = icon;
+			spotifyPlay.textContent = icon;
+			playButton.setAttribute("aria-label", playing ? "Jeda lagu" : "Putar lagu");
+			spotifyPlay.setAttribute("aria-label", playing ? "Jeda lagu" : "Putar lagu");
+		}
+
+		async function toggleMusic() {
+			if (!audio.src) {
+				audioPicker.click();
+				return;
+			}
+			if (audio.paused) await audio.play();
+			else audio.pause();
+		}
+
+		function showScreen(screenId) {
+			document.querySelectorAll(".screen").forEach((screen) => {
+				screen.hidden = screen.id !== screenId;
+			});
+		}
+
+		function renderPhotos() {
+			photosGrid.replaceChildren();
+			photosCount.textContent = `${photoItems.length} foto`;
+			photoItems.forEach((photo, index) => {
+				const tile = document.createElement("button");
+				tile.className = "photo-tile";
+				tile.type = "button";
+				tile.setAttribute("aria-label", `Lihat ${photo.name}`);
+				const image = document.createElement("img");
+				image.src = photo.source;
+				image.alt = photo.name;
+				tile.append(image);
+				tile.addEventListener("click", () => openPhoto(index));
+				photosGrid.append(tile);
+			});
+		}
+
+		function openPhoto(index) {
+			activePhotoIndex = index;
+			const photo = photoItems[activePhotoIndex];
+			photoViewerImage.src = photo.source;
+			photoViewerImage.alt = photo.name;
+			photoViewerTitle.textContent = photo.name;
+			photoViewer.hidden = false;
+			photoViewer.setAttribute("aria-hidden", "false");
+		}
+
+		function closePhotoViewer() {
+			photoViewer.hidden = true;
+			photoViewer.setAttribute("aria-hidden", "true");
+		}
+
+		function movePhoto(direction) {
+			const nextIndex = (activePhotoIndex + direction + photoItems.length) % photoItems.length;
+			openPhoto(nextIndex);
+		}
+
+		renderPhotos();
+
+		function openChat(sender, message, origin) {
+			chatOrigin = origin;
+			contactName.textContent = sender;
+			chatProfileImage.hidden = sender !== "Mark Lee (Jangan Dibalas)";
+			chatThread.replaceChildren();
+			if (sender === "Mark Lee (Jangan Dibalas)") {
+				addChatDay("Kemarin");
+				[
+					{ text: "Chan, kamu nggak capek apa selalu bikin masalah dari hal kecil?", sent: false },
+					{ text: "Hal kecil? Kamu bahkan nggak pernah punya waktu buat aku, Mark.", sent: true },
+					{ text: "Aku sibuk! Kamu pikir hidupku cuma tentang kamu?!", sent: false },
+					{ text: "Aku nggak minta seluruh hidupmu. Aku cuma minta kamu tetap milih aku.", sent: true },
+					{ text: "Aku udah muak sama pertengkaran ini.", sent: false },
+					{ text: "Kalau gitu, kita udahan aja.", sent: true },
+					{ text: "...Kamu yakin?", sent: false },
+					{ text: "Aku capek jadi satu-satunya orang yang takut kehilangan kita. Jadi, selamat tinggal, Mark.", sent: true }
+				].forEach((entry) => addMessage(entry.text, entry.sent));
+			} else if (sender === "Cey") {
+				addChatDay("Kemarin");
+				[
+					"jangan jahat-jahat jadi manusia.",
+					"kita nggak pernah tahu seberapa keras seseorang berjuang buat tetap baik-baik aja.",
+					"jangan mentang-mentang kamu nggak ngerasain sakitnya, terus kamu pikir perbuatanmu nggak nyakitin.",
+					"belajar punya hati, ya oll.",
+					"belajar mikir sebelum ngomong.",
+					"kalau belum bisa bikin orang bahagia, setidaknya jangan jadi alasan mereka kehilangan bahagianya.",
+					"hidup ini udah cukup jahat tanpa kita harus ikut-ikutan jadi jahat."
+				].forEach((text) => addMessage(text, false));
+			}
+			addChatDay("Hari ini");
+			if (sender === "Cey") addMessage("mau pada kemana, kata jeno mau keluar", false);
+			addMessage(message, false);
+			(sentMessagesByContact[sender] || []).forEach((sentMessage) => addMessage(sentMessage, true, true));
+			showScreen("chatScreen");
+			phone.classList.remove("unlocked", "inbox-open");
+			phone.classList.add("chat-open");
+		}
+
+		function addChatDay(label) {
+			const day = document.createElement("span");
+			day.className = "chat-day";
+			day.textContent = label;
+			chatThread.append(day);
+		}
+
+		function addMessage(text, sent, delivered = false) {
+			const bubble = document.createElement("div");
+			bubble.className = sent ? "chat-bubble sent" : "chat-bubble";
+			bubble.append(document.createTextNode(text));
+			if (delivered) {
+				const delivery = document.createElement("span");
+				delivery.className = "chat-delivery";
+				delivery.textContent = "✓✓";
+				bubble.append(delivery);
+			}
+			chatThread.append(bubble);
+			chatThread.scrollTop = chatThread.scrollHeight;
+		}
+
+		function updatePasscodeDisplay() {
+			const dots = passcodeDots.querySelectorAll(".passcode-dot");
+			dots.forEach((dot, index) => dot.classList.toggle("filled", index < passcode.length));
+			passcodeDots.setAttribute("aria-label", `${passcode.length} dari 4 digit dimasukkan`);
+		}
+
+		const noteTitle = document.getElementById("noteTitle");
+		const noteBody = document.getElementById("noteBody");
+		const noteStatus = document.getElementById("noteStatus");
+		const notesList = document.getElementById("notesList");
+		const noteEditorHeading = document.getElementById("noteEditorHeading");
+		const notesStorageKey = "iphone-notes-list";
+		const legacyNoteStorageKey = "iphone-notes-content";
+		const defaultNote = {
+			title: "TO DO LIST",
+			body: "1. makan banyak\n2. hidup bahagia\n3. menikah sama marrklee"
+		};
+		function createNoteId() {
+			return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+		}
+
+		const savedNoteList = localStorage.getItem(notesStorageKey);
+		let notes;
+		if (savedNoteList !== null) {
+			notes = JSON.parse(savedNoteList);
+		} else {
+			const legacyNoteText = localStorage.getItem(legacyNoteStorageKey);
+			const legacyNote = legacyNoteText ? JSON.parse(legacyNoteText) : null;
+			if (legacyNote) {
+				notes = legacyNote.title || legacyNote.body ? [{ id: createNoteId(), title: legacyNote.title || "", body: legacyNote.body || "" }] : [];
+			} else {
+				notes = [{ id: createNoteId(), ...defaultNote }];
+			}
+			localStorage.setItem(notesStorageKey, JSON.stringify(notes));
+		}
+		let activeNoteId = null;
+
+		function saveNotesList() {
+			localStorage.setItem(notesStorageKey, JSON.stringify(notes));
+		}
+
+		function renderNotesList() {
+			notesList.replaceChildren();
+			if (notes.length === 0) {
+				const emptyState = document.createElement("p");
+				emptyState.className = "note-empty";
+				emptyState.textContent = "Belum ada catatan";
+				notesList.append(emptyState);
+				return;
+			}
+			notes.forEach((note) => {
+				const row = document.createElement("button");
+				row.className = "note-row";
+				row.type = "button";
+				const title = document.createElement("span");
+				title.className = "note-row-title";
+				title.textContent = note.title || "Tanpa judul";
+				const preview = document.createElement("span");
+				preview.className = "note-row-preview";
+				preview.textContent = note.body || "Catatan kosong";
+				row.append(title, preview);
+				row.addEventListener("click", () => editNote(note.id));
+				notesList.append(row);
+			});
+		}
+
+		function createNote() {
+			activeNoteId = null;
+			noteEditorHeading.textContent = "Catatan baru";
+			noteTitle.value = "";
+			noteBody.value = "";
+			noteStatus.textContent = "Catatan baru";
+			showScreen("noteEditorScreen");
+			noteTitle.focus();
+		}
+
+		function editNote(noteId) {
+			const note = notes.find((item) => item.id === noteId);
+			if (!note) return;
+			activeNoteId = note.id;
+			noteEditorHeading.textContent = note.title || "Catatan";
+			noteTitle.value = note.title;
+			noteBody.value = note.body;
+			noteStatus.textContent = "Tersimpan di perangkat ini";
+			showScreen("noteEditorScreen");
+		}
+
+		function saveActiveNote() {
+			const title = noteTitle.value.trim();
+			const body = noteBody.value.trim();
+			if (!title && !body) {
+				noteStatus.textContent = "Isi judul atau catatan terlebih dahulu";
+				return;
+			}
+			if (activeNoteId) {
+				const note = notes.find((item) => item.id === activeNoteId);
+				if (note) Object.assign(note, { title, body });
+			} else {
+				activeNoteId = createNoteId();
+				notes.unshift({ id: activeNoteId, title, body });
+			}
+			noteEditorHeading.textContent = title || "Catatan";
+			saveNotesList();
+			renderNotesList();
+			noteStatus.textContent = "Catatan tersimpan";
+		}
+
+		function deleteActiveNote() {
+			if (activeNoteId) notes = notes.filter((note) => note.id !== activeNoteId);
+			activeNoteId = null;
+			saveNotesList();
+			renderNotesList();
+			showScreen("notesScreen");
+		}
+
+		function openPasscode() {
+			passcode = "";
+			passcodeHint.textContent = "Masukkan kode 4 digit";
+			updatePasscodeDisplay();
+			phone.classList.add("passcode-open");
+			passcodeOverlay.setAttribute("aria-hidden", "false");
+		}
+
+		function closePasscode() {
+			phone.classList.remove("passcode-open");
+			passcodeOverlay.setAttribute("aria-hidden", "true");
+		}
+
+		function cancelPasscode() {
+			pendingChat = null;
+			closePasscode();
+		}
+
+		function enterPasscodeDigit(digit) {
+			if (digit === "clear") passcode = "";
+			else if (digit === "delete") passcode = passcode.slice(0, -1);
+			else if (passcode.length < 4) passcode += digit;
+			updatePasscodeDisplay();
+			if (passcode.length !== 4) return;
+			if (passcode === "8282") {
+				const nextChat = pendingChat;
+				pendingChat = null;
+				closePasscode();
+				if (nextChat) openChat(nextChat.sender, nextChat.message, "lock");
+				else {
+					showScreen("homeScreen");
+					phone.classList.add("unlocked");
+				}
+			} else {
+				passcodeHint.textContent = "Kode salah, coba lagi";
+				passcode = "";
+				updatePasscodeDisplay();
+			}
+		}
+
+		updateTime();
+		setInterval(updateTime, 15000);
+
+		document.querySelectorAll(".notification").forEach((notification) => {
+			notification.addEventListener("click", () => {
+				pendingChat = { sender: notification.dataset.sender, message: notification.dataset.message };
+				openPasscode();
+			});
+		});
+
+		document.querySelectorAll(".chat-row").forEach((row) => {
+			row.addEventListener("click", () => openChat(row.dataset.sender, row.dataset.message, "inbox"));
+		});
+
+		chatSearch.addEventListener("input", () => {
+			const query = chatSearch.value.trim().toLocaleLowerCase("id-ID");
+			let visibleChats = 0;
+			document.querySelectorAll(".chat-row").forEach((row) => {
+				const searchText = `${row.dataset.sender} ${row.dataset.message}`.toLocaleLowerCase("id-ID");
+				row.hidden = !searchText.includes(query);
+				if (!row.hidden) visibleChats += 1;
+			});
+			chatSearchEmpty.hidden = visibleChats > 0;
+		});
+
+		phone.addEventListener("pointerdown", (event) => { touchStartY = event.clientY; });
+		phone.addEventListener("pointerup", (event) => {
+			if (touchStartY !== null && touchStartY - event.clientY > 60 && !phone.classList.contains("chat-open") && !phone.classList.contains("inbox-open")) {
+				openPasscode();
+			}
+			touchStartY = null;
+		});
+
+		document.querySelectorAll("[data-key]").forEach((button) => {
+			button.addEventListener("click", () => enterPasscodeDigit(button.dataset.key));
+		});
+		document.getElementById("passcodeCancel").addEventListener("click", cancelPasscode);
+		document.addEventListener("keydown", (event) => {
+			if (!phone.classList.contains("passcode-open")) return;
+			if (/^\d$/.test(event.key)) enterPasscodeDigit(event.key);
+			else if (event.key === "Backspace") enterPasscodeDigit("delete");
+			else if (event.key === "Escape") cancelPasscode();
+		});
+
+		document.getElementById("lockAgain").addEventListener("click", () => {
+			phone.classList.remove("unlocked", "inbox-open", "chat-open");
+			closePasscode();
+			showScreen("lockScreen");
+		});
+		document.getElementById("openInbox").addEventListener("click", () => {
+			showScreen("inboxScreen");
+			phone.classList.remove("unlocked");
+			phone.classList.add("inbox-open");
+		});
+		document.getElementById("openPhotos").addEventListener("click", () => showScreen("photosScreen"));
+		document.getElementById("photosBack").addEventListener("click", () => showScreen("homeScreen"));
+		document.getElementById("addPhotos").addEventListener("click", () => photosPicker.click());
+		photosPicker.addEventListener("change", () => {
+			Array.from(photosPicker.files).forEach((file) => {
+				photoItems.push({ source: URL.createObjectURL(file), name: file.name });
+			});
+			renderPhotos();
+			photosPicker.value = "";
+		});
+		document.getElementById("closePhotoViewer").addEventListener("click", closePhotoViewer);
+		document.getElementById("previousPhoto").addEventListener("click", () => movePhoto(-1));
+		document.getElementById("nextPhoto").addEventListener("click", () => movePhoto(1));
+		document.getElementById("openSpotify").addEventListener("click", () => showScreen("spotifyScreen"));
+		document.getElementById("openNotes").addEventListener("click", () => {
+			renderNotesList();
+			showScreen("notesScreen");
+		});
+		document.getElementById("spotifyBack").addEventListener("click", () => showScreen("homeScreen"));
+		document.getElementById("notesBack").addEventListener("click", () => showScreen("homeScreen"));
+		document.getElementById("newNote").addEventListener("click", createNote);
+		document.getElementById("noteEditorBack").addEventListener("click", () => {
+			renderNotesList();
+			showScreen("notesScreen");
+		});
+		document.getElementById("saveNote").addEventListener("click", saveActiveNote);
+		document.getElementById("deleteNote").addEventListener("click", deleteActiveNote);
+		document.getElementById("inboxBack").addEventListener("click", () => {
+			phone.classList.remove("inbox-open");
+			showScreen("homeScreen");
+			phone.classList.add("unlocked");
+		});
+		document.getElementById("chatBack").addEventListener("click", () => {
+			phone.classList.remove("chat-open");
+			if (chatOrigin === "inbox") {
+				showScreen("inboxScreen");
+				phone.classList.add("inbox-open");
+			} else {
+				showScreen("lockScreen");
+			}
+		});
+
+		chatForm.addEventListener("submit", (event) => {
+			event.preventDefault();
+			const message = chatInput.value.trim();
+			if (!message) return;
+			const sender = contactName.textContent;
+			if (!sentMessagesByContact[sender]) sentMessagesByContact[sender] = [];
+			sentMessagesByContact[sender].push(message);
+			localStorage.setItem(chatMessageStorageKey, JSON.stringify(sentMessagesByContact));
+			addMessage(message, true, true);
+			const chatRow = Array.from(document.querySelectorAll(".chat-row")).find((row) => row.dataset.sender === sender);
+			if (chatRow) chatRow.querySelector(".chat-row-preview").textContent = message;
+			chatInput.value = "";
+			chatInput.focus();
+		});
+
+		playButton.addEventListener("click", toggleMusic);
+		spotifyPlay.addEventListener("click", toggleMusic);
+		document.getElementById("spotifyChooseFile").addEventListener("click", () => audioPicker.click());
+
+		audioPicker.addEventListener("change", () => {
+			const file = audioPicker.files[0];
+			if (!file) return;
+			audio.src = URL.createObjectURL(file);
+			document.getElementById("trackTitle").textContent = file.name.replace(/\.[^.]+$/, "");
+			document.getElementById("trackArtist").textContent = "File lokal";
+			document.getElementById("spotifyTrackTitle").textContent = file.name.replace(/\.[^.]+$/, "");
+			document.getElementById("spotifyTrackArtist").textContent = "File lokal";
+			audio.load();
+		});
+
+		audio.addEventListener("play", () => updatePlayButtons(true));
+		audio.addEventListener("pause", () => updatePlayButtons(false));
+		audio.addEventListener("timeupdate", updatePlayer);
+		audio.addEventListener("loadedmetadata", updatePlayer);
+		seek.addEventListener("input", () => { if (audio.duration) audio.currentTime = Number(seek.value); });
+		spotifySeek.addEventListener("input", () => { if (audio.duration) audio.currentTime = Number(spotifySeek.value); });
+		document.getElementById("backTen").addEventListener("click", () => { if (audio.src) audio.currentTime = Math.max(0, audio.currentTime - 10); });
+		document.getElementById("forwardTen").addEventListener("click", () => { if (audio.src) audio.currentTime = Math.min(audio.duration || 0, audio.currentTime + 10); });
+		document.getElementById("spotifyBackTen").addEventListener("click", () => { if (audio.src) audio.currentTime = Math.max(0, audio.currentTime - 10); });
+		document.getElementById("spotifyForwardTen").addEventListener("click", () => { if (audio.src) audio.currentTime = Math.min(audio.duration || 0, audio.currentTime + 10); });
+	</script>
+</body>
+</html>
